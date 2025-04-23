@@ -1,4 +1,5 @@
 import { sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { randomUUID } from "node:crypto";
 
 export const files = sqliteTable("files", {
   id: text("id")
