@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { desc } from "drizzle-orm";
 
 const app = new Hono().basePath("/api");
 
@@ -29,28 +30,57 @@ app.post("/upload", async (c) => {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expirationDays);
 
-    try {
-        const db = drizzle(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (getCloudflareContext().env as any).DB as unknown as D1Database
-        );
 
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const r2 = (getCloudflareContext().env as any).R2 as unknown as R2Bucket;
+        await r2.put(filePath, file);
+    } catch (r2Error) {
+        return c.json(
+            {
+                success: false,
+                message: `File upload failed ${r2Error}`,
+            },
+            500
+        );
+    }
+    
+    const db = drizzle(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (getCloudflareContext().env as any).DB as unknown as D1Database
+    );
+
+    try {
         await db.insert(files).values({
             fileName,
             filePath,
             contentType: file.type,
             expiresAt: expiresAt.toISOString(),
         });
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return c.json(
-            { success: false, message: "Failed to upload file" },
+            { 
+                success: false, 
+                message: "Failed to upload file",
+                error: error,
+            },
             500
         );
     }
+
+    const insertRecord = await db
+        .select()
+        .from(files)
+        .orderBy(desc(files.createdAt))
+        .limit(1);
         
-    return c.json({ success: true, message: "File uploaded successfully" });
+    return c.json({ 
+        success: true, 
+        message: "File uploaded successfully" , 
+        url: `${process.env.BASE_URL}/files/${insertRecord[0].id}`, 
+        expiresAt: expiresAt.toISOString(),
     });
+});
 
 export const GET = handle(app);
 export const POST = handle(app);
