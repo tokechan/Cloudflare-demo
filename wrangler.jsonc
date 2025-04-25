@@ -25,12 +25,11 @@
 		}
 	],
 	"r2_buckets": [
-		{
-			"binding": "R2",
-			"bucket_name": "file-share-app"
+	{
+		"binding": "R2",
+		"bucket_name": "file-share-app"
 		}
-
-	]
+	],
 
 	/**
 	 * Smart Placement

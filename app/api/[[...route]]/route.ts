@@ -30,12 +30,15 @@ app.post("/upload", async (c) => {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expirationDays);
 
+    console.log(`Attempting to upload file: ${fileName} to path: ${filePath}`);
 
     try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const r2 = (getCloudflareContext().env as any).R2 as unknown as R2Bucket;
         await r2.put(filePath, file);
+        console.log(`Successfully uploaded to R2: ${filePath}`);
     } catch (r2Error) {
+        console.error(`R2 upload error:`, r2Error);
         return c.json(
             {
                 success: false,
