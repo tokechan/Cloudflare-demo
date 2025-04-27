@@ -28,13 +28,10 @@
 	{
 		"binding": "R2",
 		"bucket_name": "file-share-app"
-<<<<<<< HEAD
 		},
 	{
 		"binding": "NEXT_INC_CACHE_R2_BUCKET",
 		"bucket_name": "file-share-app-cache"
-=======
->>>>>>> fb39027 (Add:R2 deploy)
 		}
 	],
 
